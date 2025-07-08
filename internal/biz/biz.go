@@ -2,16 +2,17 @@ package biz
 
 import (
 	"context"
-
-	"github.com/zxq97/x-finance/internal/data"
 )
 
 type OrderRepo interface {
-	GetOne(ctx context.Context, cond map[string]interface{}) (*data.Order, error)
-	GetAll(ctx context.Context, cond map[string]interface{}) ([]*data.Order, error)
-	Create(ctx context.Context, order *data.Order) error
-	Paid(ctx context.Context, id int64) error
-	GetRefundByNo(ctx context.Context, refundNo string) (*data.Refund, error)
+	CheckCreate(ctx context.Context, mainID, id int64, orderType int8) error
+	CheckRefund(ctx context.Context, mainID int64, refundNo string) error
+	Create(ctx context.Context, param *Order) error
+	GetSubOrderByID(ctx context.Context, id int64) (*Order, error)
+	GetSubOrdersByMainID(ctx context.Context, mainID int64, orderType int8) ([]*Order, error)
+	Refund(ctx context.Context, param *RefundResult) error
+
+	UpdateOrderStatus(ctx context.Context, id int64, status int8) error
 }
 
 type DepositRepo interface {
@@ -19,5 +20,6 @@ type DepositRepo interface {
 }
 
 type Calculate interface {
-	Refund(ctx context.Context, itmes []*RefundItemDO) (map[int64]*RefundResultDO, error)
+	Refund(ctx context.Context, param *RefundAmtParam) (map[int64]*RefundAmtResult, error)
+	Profit(ctx context.Context, param *ProfitAmtParam) (*ProfitAmtResult, error)
 }

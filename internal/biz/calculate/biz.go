@@ -1,6 +1,8 @@
 package calculate
 
-import "github.com/zxq97/x-finance/internal/biz"
+import (
+	"github.com/zxq97/x-finance/internal/biz"
+)
 
 const (
 	StrategyNormal  = 1

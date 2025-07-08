@@ -6,62 +6,80 @@ import (
 
 	"github.com/zxq97/x-finance/internal/biz"
 	"github.com/zxq97/x-finance/internal/biz/calculate"
-	"github.com/zxq97/x-finance/internal/data"
 )
 
-func (uc *OrderUseCase) buildRefundNo(ctx context.Context, do *CancelDO) string {
-	return fmt.Sprintf(refundNo, do.ID, do.Type)
-}
-
-func (uc *OrderUseCase) getStrategy(ctx context.Context, order *data.Order) int8 {
-	if order.Commission {
-		return calculate.StrategyNormal
-	}
-	return calculate.StrategyWithout
-}
-
-func (*OrderUseCase) transformRefundItem(ctx context.Context, order ...*data.Order) []*biz.RefundItemDO {
-	if len(order) == 0 {
-		return nil
+func (uc *OrderUseCase) Cancel(ctx context.Context, param *CancelParam) error {
+	refundNo := fmt.Sprintf(refundNoTmp, param.ID, param.OrderType)
+	if err := uc.repo.CheckRefund(ctx, param.MainID, refundNo); err != nil {
+		return err
 	}
 
-	items := make([]*biz.RefundItemDO, len(order))
-	for k, v := range order {
-		items[k] = &biz.RefundItemDO{
-			ID: v.ID,
+	orders, err := uc.repo.GetSubOrdersByMainID(ctx, param.MainID, param.OrderType)
+	if err != nil {
+		return err
+	}
+
+	var sumSettle int64
+	list := make([]*biz.RefundItem, len(orders))
+	for k, v := range orders {
+		sumSettle += v.Settle
+		list[k] = &biz.RefundItem{
+			ID:        v.ID,
+			OrderType: v.Type,
+			Balance:   v.Balance,
+			Discount:  v.Discount,
+			RealPay:   v.RealPay,
+			Coupon:    v.Coupon,
 		}
 	}
-	return items
-}
 
-func (uc *OrderUseCase) Cancel(ctx context.Context, do *CancelDO) error {
-	order, err := uc.getWithOption(ctx, do.ID, withStatus(StatusUnpaid), withType(OrderTypeNormal), withFilterEmpty(), withFilterNoBalance())
+	if sumSettle < param.Deduct {
+		return biz.ErrCancelDeductInvalid
+	}
+
+	calc, err := calculate.NewCalculate(calculate.StrategyNormal)
 	if err != nil {
 		return err
 	}
 
-	refundNo := uc.buildRefundNo(ctx, do)
-	refund, err := uc.repo.GetRefundByNo(ctx, refundNo)
-	if err != nil {
-		return err
-	} else if refund != nil {
-		return biz.ErrCancelDuplicate
-	}
-
-	orders, err := uc.getAllWtihOption(ctx, do.MainID, withStatus(StatusPaid), withType(OrderTypeNormal), withFilterNoBalance())
+	uapAmt, err := calc.Refund(ctx, &biz.RefundAmtParam{
+		RefundAmt:   sumSettle - param.Deduct,
+		RefundType:  RefundTypeOrderCancel,
+		RefundItems: list,
+	})
 	if err != nil {
 		return err
 	}
 
-	calc, err := calculate.NewCalculate(uc.getStrategy(ctx, order))
-	if err != nil {
-		return err
+	res := &biz.RefundResult{
+		MainID:     param.MainID,
+		RefundType: RefundTypeOrderCancel,
+		RefundAmt:  sumSettle - param.Deduct,
+		RefundNo:   refundNo,
+		Items:      make([]*biz.RefundResultItem, 0, len(orders)),
+	}
+	for _, v := range orders {
+		if val, ok := uapAmt[v.ID]; ok {
+			pasAmt, err := calc.Profit(ctx, &biz.ProfitAmtParam{
+				Profit:     v.Profit,
+				SelfProfit: v.SelfPrifit,
+				RefundAmt:  val.RefundCoupon + val.RefundReal,
+				Settlt:     v.Settle,
+				Rate:       10,
+			})
+			if err != nil {
+				return err
+			}
+
+			res.Items = append(res.Items, &biz.RefundResultItem{
+				ID:           v.ID,
+				RefundReal:   val.RefundReal,
+				RefundCoupon: val.RefundCoupon,
+				SelfRefund:   pasAmt.SelfRefund,
+				OtherRefund:  pasAmt.OtherRefund,
+			})
+		}
 	}
 
-	res, err := calc.Refund(ctx, uc.transformRefundItem(ctx, orders...))
-	if err != nil {
-		return err
-	}
-
-	
+	return uc.repo.Refund(ctx, res)
 }

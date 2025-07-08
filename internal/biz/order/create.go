@@ -4,49 +4,52 @@ import (
 	"context"
 
 	"github.com/zxq97/x-finance/internal/biz"
-	"github.com/zxq97/x-finance/internal/data"
 )
 
-func (uc *OrderUseCase) build(ctx context.Context, do *OrderDO) (*data.Order, error) {
-	return &data.Order{
-		ID: do.ID,
-	}, nil
+func (uc *OrderUseCase) buildOrder(param *CreateParam) *biz.Order {
+	var rate int64 = 15
+
+	order := &biz.Order{
+		BizType:  param.BizType,
+		MainID:   param.MainID,
+		ID:       param.ID,
+		Type:     param.OrderType,
+		Amount:   param.Target,
+		RealPay:  param.RealPay,
+		Coupon:   param.Coupon,
+		Balance:  param.RealPay,
+		Discount: param.Coupon,
+		Settle:   param.Target,
+		Profit:   param.Target,
+		Rate:     int8(rate),
+	}
+
+	order.SelfSettle = param.Target * rate / 100
+	order.OtherSettle = param.Target - order.SelfSettle
+	order.SelfPrifit = param.Target * rate / 100
+	order.OtherProfit = param.Target - order.SelfPrifit
+	return order
 }
 
-func (uc *OrderUseCase) checkPayStatus(ctx context.Context, do *NotifyDO) error {
-	if do.Status != StatusPaid {
-		return biz.ErrOrderPayFailed
+func (uc *OrderUseCase) Create(ctx context.Context, param *CreateParam) error {
+	if err := uc.repo.CheckCreate(ctx, param.MainID, param.ID, param.OrderType); err != nil {
+		return err
 	}
-	return nil
+
+	return uc.repo.Create(ctx, uc.buildOrder(param))
 }
 
-func (uc *OrderUseCase) Create(ctx context.Context, do *OrderDO) error {
-	// fixme 改成option形式 携带option 直接判断err
-	o, err := uc.repo.GetOne(ctx, nil)
-	if err != nil {
-		return err
-	} else if o != nil {
-		return biz.ErrOrderDuplicate
-	}
-
-	order, err := uc.build(ctx, do)
+func (uc *OrderUseCase) NotifyPay(ctx context.Context, param *NotifyPayParam) error {
+	order, err := uc.repo.GetSubOrderByID(ctx, param.ID)
 	if err != nil {
 		return err
 	}
 
-	return uc.repo.Create(ctx, order)
-}
-
-func (uc *OrderUseCase) NotifyPay(ctx context.Context, do *NotifyDO) error {
-	// fixme 改成option形式 携带option 直接判断err
-	_, err := uc.repo.GetOne(ctx, nil)
-	if err != nil {
-		return err
+	if order.Status == param.Status {
+		return nil
 	}
 
-	if err = uc.checkPayStatus(ctx, do); err!= nil {
-		return err
-	}
+	// todo -> ch notify
 
-	return uc.repo.Paid(ctx, do.ID)
+	return uc.repo.UpdateOrderStatus(ctx, param.ID, param.Status)
 }
