@@ -18,4 +18,8 @@ var (
 	ErrCancelDeductInvalid = errors.New("cancel: deduct invalid")
 
 	ErrProfitSettleInvalid = errors.New("profit: settle invalid")
+
+	ErrDepositNotFreeze = errors.New("deposit: not freeze")
+	ErrDeductAmountInvalid = errors.New("deduct: amount invalid")
+	ErrDeductPreCheckFailed = errors.New("deduct: pre check failed")
 )

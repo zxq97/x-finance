@@ -1,12 +1,25 @@
 package biz
 
+type MainOrder struct {
+	BizType int8
+
+	MainID  int64
+	Amount  int64
+	RealPay int64
+	Coupon  int64
+
+	// deposit
+	FreezeType    int8
+	DepositAmount int64
+}
+
 type Order struct {
 	BizType int8
 
-	MainID      int64
-	ID          int64
-	Type        int8
-	Status      int8
+	MainID int64
+	ID     int64
+	Type   int8
+	Status int8
 
 	Amount      int64
 	RealPay     int64

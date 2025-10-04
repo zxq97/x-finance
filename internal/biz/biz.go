@@ -16,7 +16,13 @@ type OrderRepo interface {
 }
 
 type DepositRepo interface {
-	Create(ctx context.Context) error
+	Freeze(ctx context.Context) error
+	CreateDeduct(ctx context.Context, deduct *Deduct) error
+	GetMainOrderByID(ctx context.Context, id int64) (*MainOrder, error)
+	HasDeductingAndDeductFailed(ctx context.Context, id int64) error
+	GetDeductsByMainID(ctx context.Context, mainID int64) ([]*Deduct, error)
+	GetDeductByNo(ctx context.Context, mainID int64, deductNo string) (*Deduct, error)
+	GetDeductsByType(ctx context.Context, mainID int64, deductType int8) ([]*Deduct, error)
 }
 
 type Calculate interface {
