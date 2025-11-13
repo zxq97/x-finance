@@ -1,5 +1,18 @@
 package biz
 
+type RefundRecord struct {
+	BizType       int8
+	MainID        int64
+	ID            int64
+	RefundNo      string
+	ThirdRefundNo string
+	RefundType    int8
+	RefundAmt     int64
+	RefundReal    int64
+	RefundCoupon  int64
+	RefundPromo   int64
+}
+
 type RefundAmtParam struct {
 	RefundAmt   int64
 	RefundType  int8

@@ -24,8 +24,10 @@ type Order struct {
 	Amount      int64
 	RealPay     int64
 	Coupon      int64
+	Promo       int64
 	Balance     int64
 	Discount    int64
+	Promotion   int64
 	Settle      int64
 	Profit      int64
 	SelfSettle  int64

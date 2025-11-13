@@ -50,6 +50,10 @@ func (r *repo) Refund(ctx context.Context, param *biz.RefundResult) error {
 	panic(1)
 }
 
+func (r *repo) GetRefundRecordsByID(ctx context.Context, mainID int64, ids []int64) ([]*biz.RefundRecord, error) {
+	panic(1)
+}
+
 func (r *repo) UpdateOrderStatus(ctx context.Context, id int64, status int8) error {
 	panic(1)
 }

@@ -10,7 +10,9 @@ type OrderRepo interface {
 	Create(ctx context.Context, param *Order) error
 	GetSubOrderByID(ctx context.Context, id int64) (*Order, error)
 	GetSubOrdersByMainID(ctx context.Context, mainID int64, orderType int8) ([]*Order, error)
-	Refund(ctx context.Context, param *RefundResult) error
+	GetRefundRecordsByID(ctx context.Context, mainID int64, ids []int64) ([]*RefundRecord, error)
+	// InsertRefundRecords(ctx context.Context, records []*RefundRecord) error
+	// RealRefund(ctx context.Context, record *RefundRecord) error
 
 	UpdateOrderStatus(ctx context.Context, id int64, status int8) error
 }

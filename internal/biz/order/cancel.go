@@ -81,5 +81,6 @@ func (uc *OrderUseCase) Cancel(ctx context.Context, param *CancelParam) error {
 		}
 	}
 
-	return uc.repo.Refund(ctx, res)
+	// return uc.repo.Refund(ctx, res)
+	return nil
 }
