@@ -1,4 +1,4 @@
-// protoc -I=/home/zongxingquan/go/x-finance/api        --go_out=.        --go-grpc_out=.        settle/service/v1/common.proto        settle/service/v1/create.proto   settle/service/v1/cancel.proto settle/service/v1/refund.proto     settle/service/v1/settle.proto settle/service/v1/service.proto
+// protoc -I=/Users/didi/vscode/x-finance/api        --go_out=.        --go-grpc_out=.        settle/service/v1/common.proto        settle/service/v1/create.proto   settle/service/v1/cancel.proto settle/service/v1/refund.proto     settle/service/v1/settle.proto settle/service/v1/service.proto
 
 syntax = "proto3";
 
