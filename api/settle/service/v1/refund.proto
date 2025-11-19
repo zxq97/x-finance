@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package settle.service.v1;
+
+option go_package = "api/settle/service/v1;v1";
+
+import "settle/service/v1/common.proto";
+
+message RefundRequest {
+    BizType biz_type = 1;
+    int64 order_id = 2;
+    int64 sub_order_id = 3;
+    OrderType order_type = 4;
+    RefundType refund_type = 5;
+    string refund_no = 6;
+    int64 refund_amount = 7;
+}
+
+message RefundDetail {
+    string refund_no = 1;
+    int64 refund_amount = 2;
+    int64 refund_real = 3;
+    int64 refund_coupon = 4;
+    int64 refund_promotion = 5;
+}
+
+message RefundResponse {
+    string refund_no = 1;
+    int64 order_id = 2;
+    map<int64, RefundDetail> refund_details = 3;
+}

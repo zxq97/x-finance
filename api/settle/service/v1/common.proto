@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package settle.service.v1;
+
+option go_package = "api/settle/service/v1;v1";
+
+enum BizType {
+    BizTypeUnknown = 0;
+    BizTypeRental = 1;
+    BizTypeHotel = 2;
+    BizTypeTrain = 3;
+    BizTypeFlight = 4;
+}
+
+enum OrderType {
+    OrderTypeUnknown = 0;
+    OrderTypeNormal = 1;
+    OrderTypeReplenish = 2;
+    OrderTypeRenewal = 3;
+    OrderTypeModify = 4;
+}
+
+enum RefundType {
+    RefundTypeUnknown = 0;
+    RefundTypeSource = 1;
+    RefundTypeEnergy = 2;
+}

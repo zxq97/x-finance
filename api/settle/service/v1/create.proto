@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package settle.service.v1;
+
+option go_package = "api/settle/service/v1;v1";
+
+import "settle/service/v1/common.proto";
+
+message CreateOrderRequest {
+  BizType biz_type = 1;
+  int64 uid = 2;
+  int64 order_id = 3;
+  int64 sub_order_id = 4;
+  int32 source = 5;
+  string supplier_code = 6;
+  int64 sotre_amount = 7;
+  int64 target_amount = 8;
+  int64 real_pay_amount = 9;
+  int64 coupon_amount = 10;
+  int64 promotion_amount = 11;
+  int64 merchant_discount = 12;
+  OrderType order_type = 13;
+}
+
+message PayInfo {
+    string out_trade_id = 1;
+}
+
+message CreateOrderResponse {
+    PayInfo pay_info = 1;
+}

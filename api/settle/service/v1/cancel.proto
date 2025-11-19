@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package settle.service.v1;
+
+option go_package = "api/settle/service/v1;v1";
+
+import "settle/service/v1/common.proto";
+
+message CancelRequest {
+    BizType biz_type = 1;
+    int64 order_id = 2;
+    int64 sub_order_id = 3;
+    OrderType order_type = 4;
+    int64 deduct_amount = 5;
+}
+
+message CancelDetail {
+    int64 refund_amount = 1;
+    int64 refund_real = 2;
+    int64 refund_coupon = 3;
+    int64 refund_promotion = 4;
+}
+
+message CancelResponse {
+    int64 order_id = 1;
+    map<int64, CancelDetail> cancel_details = 2;
+}

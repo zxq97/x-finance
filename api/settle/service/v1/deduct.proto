@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package settle.service.v1;
+
+option go_package = "api/settle/service/v1;v1";
+
+import "settle/service/v1/common.proto";
+
+message DeductRefundRequest {
+    BizType biz_type = 1;
+    int64 order_id = 2;
+}
