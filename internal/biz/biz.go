@@ -21,10 +21,12 @@ type DepositRepo interface {
 	Freeze(ctx context.Context) error
 	CreateDeduct(ctx context.Context, deduct *Deduct) error
 	GetMainOrderByID(ctx context.Context, id int64) (*MainOrder, error)
-	HasDeductingAndDeductFailed(ctx context.Context, id int64) error
-	GetDeductsByMainID(ctx context.Context, mainID int64) ([]*Deduct, error)
+	CheckRefund(ctx context.Context, maidID int64, refundNo string) error
+	HasDeductingAndDeductFailed(ctx context.Context, mainID int64) error
+	GetDeductsByMainID(ctx context.Context, mainID int64, status int8) ([]*Deduct, error)
 	GetDeductByNo(ctx context.Context, mainID int64, deductNo string) (*Deduct, error)
 	GetDeductsByType(ctx context.Context, mainID int64, deductType int8) ([]*Deduct, error)
+	GetRefundRecordsByID(ctx context.Context, mainID int64, ids []int64) ([]*RefundRecord, error)
 }
 
 type Calculate interface {

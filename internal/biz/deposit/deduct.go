@@ -16,7 +16,7 @@ func (uc *DepositUseCase) Deduct(ctx context.Context, param *DeductParam) error 
 		return biz.ErrDepositNotFreeze
 	}
 
-	deducts, err := uc.repo.GetDeductsByMainID(ctx, param.MainID)
+	deducts, err := uc.repo.GetDeductsByMainID(ctx, param.MainID, -1)
 	if err != nil {
 		return err
 	}
