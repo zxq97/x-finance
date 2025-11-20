@@ -20,7 +20,7 @@ type RefundBiz interface {
 
 var _ Strategy = (*example)(nil)
 
-type example struct	{
+type example struct {
 	biz RefundBiz
 }
 
@@ -80,16 +80,16 @@ func (e *example) Refund(ctx context.Context, param *RefundParam) error {
 		refundDetail.PromoAmt -= tmpRefundPromo
 
 		refundRecords = append(refundRecords, &RefundRecord{
-			BizType:       param.BizType,
-			MainID:        param.MainID,
-			ID:            v.ID,
-			Type:          v.OrderType,
-			RefundType:    param.RefundType,
-			RefundNo:      param.RefundNo,
-			RefundAmt:     param.RefundAmt,
-			RefundReal:    tmpRefundReal,
-			RefundCoupon:  tmpRefundCoupon,
-			RefundPromo:   tmpRefundPromo,
+			BizType:      param.BizType,
+			MainID:       param.MainID,
+			ID:           v.ID,
+			Type:         v.OrderType,
+			RefundType:   param.RefundType,
+			RefundNo:     param.RefundNo,
+			RefundAmt:    param.RefundAmt,
+			RefundReal:   tmpRefundReal,
+			RefundCoupon: tmpRefundCoupon,
+			RefundPromo:  tmpRefundPromo,
 		})
 	}
 

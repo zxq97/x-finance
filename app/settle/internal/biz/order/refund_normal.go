@@ -44,6 +44,8 @@ func (r *refundNormal) GetNeedRefundOrders(ctx context.Context, param *refund.Ge
 		}
 	}
 
+	refund.SortByBPC(res)
+
 	return res, nil
 }
 
@@ -102,8 +104,6 @@ func (r *refundNormal) InsertRefundRecords(ctx context.Context, records []*refun
 			RefundPromotion: v.RefundPromo,
 		}
 	}
-
-	
 
 	return r.repo.InsertRefunds(ctx, refunds)
 }
