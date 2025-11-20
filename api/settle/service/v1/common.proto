@@ -24,4 +24,14 @@ enum RefundType {
     RefundTypeUnknown = 0;
     RefundTypeSource = 1;
     RefundTypeEnergy = 2;
+    RefundTypeUserCancel = 3;
+    RefundTypePenalty = 4;
+}
+
+enum SettleType {
+    SettleTypeUnknown = 0;
+    SettleTypeNormal = 1;
+    SettleTypeMerge = 2;
+    SettleTypeGoods = 3;
+    SettleTypeSublet = 4;
 }

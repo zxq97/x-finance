@@ -3,6 +3,7 @@ CREATE TABLE `orders` (
     `uid` bigint unsigned NOT NULL DEFAULT 0 COMMENT '用户ID',
     `source` int unsigned NOT NULL DEFAULT '0' COMMENT '服务商id 1:携程 2:悟空 3:哈罗 4:飞猪',
     `supplier_code` varchar(128) NOT NULL DEFAULT '' COMMENT '供应商ID',
+    `merchant_code` varchar(128) NOT NULL DEFAULT '' COMMENT '转租商ID',
     `relate_order_id` bigint unsigned NOT NULL DEFAULT 0 COMMENT '主订单编号',
     `relate_sub_order_id` bigint unsigned NOT NULL DEFAULT 0 COMMENT '子订单编号',
     `third_order_id` varchar(128) DEFAULT NULL COMMENT '第三方订单编号',
@@ -79,8 +80,8 @@ CREATE TABLE `refund_settle_details` (
     `relate_sub_order_id` bigint unsigned NOT NULL DEFAULT 0 COMMENT '子订单编号',
     `refund_no` varchar(128) NOT NULL COMMENT '退款单号',
     `target_type` tinyint unsigned NOT NULL DEFAULT 0 COMMENT '分账对象类型: 0:平台 1:商户 2:三方',
-    `target_id` bigint NOT NULL COMMENT '退款对象ID',
     `merchant_id` varchar(64) NOT NULL DEFAULT '' COMMENT '商户号id',
+    `grant_merchant_id` varchar(64) NOT NULL DEFAULT '' COMMENT '代发商户号id'
     `refund_amount` bigint unsigned NOT NULL DEFAULT 0 COMMENT '退款金额',
     `refund_status` tinyint unsigned NOT NULL DEFAULT 0 COMMENT '退款状态',
     `refund_time` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01' COMMENT '退款时间',
@@ -89,4 +90,4 @@ CREATE TABLE `refund_settle_details` (
     PRIMARY KEY (`id`),
     KEY `idx_refund_no` (`refund_no`),
     KEY `idx_order_id` (`relate_sub_order_id`),
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款分账明细表';
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '退款分账明细表';

@@ -13,13 +13,15 @@ message CreateOrderRequest {
   int64 sub_order_id = 4;
   int32 source = 5;
   string supplier_code = 6;
-  int64 sotre_amount = 7;
+  int64 store_amount = 7;
   int64 target_amount = 8;
   int64 real_pay_amount = 9;
   int64 coupon_amount = 10;
   int64 promotion_amount = 11;
   int64 merchant_discount = 12;
   OrderType order_type = 13;
+  SettleType settle_type = 14;
+  string merchant_code = 15;
 }
 
 message PayInfo {
