@@ -3,7 +3,7 @@ package order
 import (
 	"context"
 
-	v1 "github.com/zxq97/x-finance/api/settle/service/v1"
+	"github.com/zxq97/x-finance/api/settle/service/v1"
 	"github.com/zxq97/x-finance/app/settle/internal/biz"
 	"github.com/zxq97/x-finance/pkg/refund"
 	"github.com/zxq97/x-finance/pkg/util"
@@ -21,7 +21,11 @@ func (r *refundNormal) CheckIdempotent(ctx context.Context, param *refund.CheckI
 }
 
 func (r *refundNormal) GetNeedRefundOrders(ctx context.Context, param *refund.GetRefundOrderParam) ([]*refund.Order, error) {
-	orders, err := r.repo.GetAllByID(ctx, param.BizType, param.MainID, param.Type, biz.WithDynamic())
+	opts := []biz.Option{biz.WithDynamic()}
+	if param.Type != 0 {
+		opts = append(opts, biz.WithOrderType([]int8{param.Type}))
+	}
+	orders, err := r.repo.GetAllByID(ctx, param.BizType, param.MainID, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +48,10 @@ func (r *refundNormal) GetNeedRefundOrders(ctx context.Context, param *refund.Ge
 		}
 	}
 
-	refund.SortByBPC(res)
-
 	return res, nil
 }
 
-func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (*refund.RefundDetail, error) {
+func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (refund.RefundSortFn, *refund.RefundDetail, error) {
 	var amt, balance, discount, promotion, realPay, target int64
 	for _, v := range param.Orders {
 		amt += v.SettleAmt
@@ -61,28 +63,32 @@ func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRe
 	}
 
 	if amt < param.RefundAmt || balance < param.RefundReal || discount < param.RefundCoupon || promotion < param.RefundPromo {
-		return nil, biz.ErrRefundAmtInvalid
+		return nil, nil, biz.ErrRefundAmtInvalid
 	}
 
 	res := new(refund.RefundDetail)
+	var fn refund.RefundSortFn
 	switch v1.RefundType(param.RefundType) {
 	case v1.RefundType_RefundTypeEnergy: // 钱优先
 		res.RealAmt = util.Min(param.RefundAmt, balance)
 		res.PromoAmt = util.Min(param.RefundAmt-res.RealAmt, promotion)
 		res.CouponAmt = util.Min(param.RefundAmt-res.RealAmt-res.PromoAmt, discount)
+		fn = refund.SortByBPC
 	case v1.RefundType_RefundTypePenalty: // 券优先
 		res.CouponAmt = util.Min(param.RefundAmt, discount)
 		res.PromoAmt = util.Min(param.RefundAmt-res.CouponAmt, promotion)
 		res.RealAmt = util.Min(param.RefundAmt-res.CouponAmt-res.PromoAmt, balance)
+		fn = refund.SortByCPB
 	case v1.RefundType_RefundTypeUserCancel, v1.RefundType_RefundTypeSource: // 比例
 		res.RealAmt = util.Min(realPay/target*param.RefundAmt, balance)
 		res.PromoAmt = util.Min(param.RefundAmt-res.RealAmt, promotion)
 		res.CouponAmt = util.Min(param.RefundAmt-res.RealAmt-res.PromoAmt, discount)
+		fn = refund.SortByBPC
 	default:
-		return nil, biz.ErrRefundTypeNotFound
+		return nil, nil, biz.ErrRefundTypeNotFound
 	}
 
-	return res, nil
+	return fn, res, nil
 }
 
 func (r *refundNormal) InsertRefundRecords(ctx context.Context, records []*refund.RefundRecord) error {
@@ -102,6 +108,38 @@ func (r *refundNormal) InsertRefundRecords(ctx context.Context, records []*refun
 			RefundRealPay:   v.RefundReal,
 			RefundCoupon:    v.RefundCoupon,
 			RefundPromotion: v.RefundPromo,
+		}
+	}
+
+	m, err := r.repo.MultiGetDetailsBySubIDs(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range refunds {
+		details, ok := m[v.SubID]
+		if !ok {
+			return biz.ErrSettleDetailNotFound
+		}
+		refundNo := buildRefundNo(v.SubID, v.ThirdRefundNo)
+		v.RefundDetails = make([]*biz.RefundDetail, len(details))
+		refundAmts := make([]int64, len(details))
+		remain := v.RefundAmt
+		for k, d := range details {
+			v.RefundDetails[k] = &biz.RefundDetail{
+				SubID:           d.SubID,
+				TargetType:      d.TargetType,
+				RefundNo:        refundNo,
+				MerchantID:      d.MerchantID,
+				GrantMerchantID: d.GrantMerchantID,
+			}
+			if k == len(details)-1 {
+				refundAmts[k] = remain
+			} else {
+				refundAmts[k] = v.RefundAmt * int64(d.Rate) / 100
+				remain -= refundAmts[k]
+			}
+			v.RefundDetails[k].RefundAmt = refundAmts[k]
 		}
 	}
 

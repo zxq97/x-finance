@@ -67,7 +67,7 @@ func (r *refundNormal) GetNeedRefundOrders(ctx context.Context, param *refund.Ge
 	return res, nil
 }
 
-func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (*refund.RefundDetail, error) {
+func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (refund.RefundSortFn, *refund.RefundDetail, error) {
 	var amt, balance, discount, promotion, realPay, target int64
 	for _, v := range param.Orders {
 		amt += v.SettleAmt
@@ -79,7 +79,7 @@ func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRe
 	}
 
 	if amt < param.RefundAmt || balance < param.RefundReal || discount < param.RefundCoupon || promotion < param.RefundPromo {
-		return nil, biz.ErrRefundAmtInvalid
+		return nil, nil, biz.ErrRefundAmtInvalid
 	}
 
 	res := new(refund.RefundDetail)
@@ -94,10 +94,10 @@ func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRe
 		res.RealAmt = util.Min(realPay/target*param.RefundAmt, balance)
 		res.CouponAmt = util.Min(param.RefundAmt-res.RealAmt, discount)
 	default:
-		return nil, biz.ErrRefundTypeNotFound
+		return nil, nil, biz.ErrRefundTypeNotFound
 	}
 
-	return res, nil
+	return refund.SortByBPC, res, nil
 }
 
 func (r *refundNormal) InsertRefundRecords(ctx context.Context, records []*refund.RefundRecord) error {

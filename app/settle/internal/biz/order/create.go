@@ -65,11 +65,23 @@ func (uc *OrderUseCase) createNormal(ctx context.Context, order *biz.OrderCreate
 }
 
 func (uc *OrderUseCase) createMerge(ctx context.Context, order *biz.OrderCreateParam) (*biz.PayInfo, error) {
-	return nil, nil
+	panic("implement me")
 }
 
 func (uc *OrderUseCase) createGoods(ctx context.Context, order *biz.OrderCreateParam) (*biz.PayInfo, error) {
-	return nil, nil
+	order.SettleDetails = append(order.SettleDetails, &biz.SettleDetail{
+		MerchantID: platformMerchantID,
+		Rate:       100,
+		SettleAmt:  order.TargetAmt,
+		SubID:      order.SubID,
+		TargetType: targetTypePlatform,
+	})
+
+	if err := uc.repo.Create(ctx, order); err != nil {
+		return nil, err
+	}
+
+	return uc.cashier.CreateOrder(ctx, &biz.CreateOrderParam{})
 }
 
 func (uc *OrderUseCase) createSublet(ctx context.Context, order *biz.OrderCreateParam) (*biz.PayInfo, error) {

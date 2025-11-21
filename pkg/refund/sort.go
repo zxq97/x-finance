@@ -2,6 +2,8 @@ package refund
 
 import "sort"
 
+type RefundSortFn func([]*Order)
+
 var _ sort.Interface = (*sortByBCP)(nil)
 var _ sort.Interface = (*sortByBPC)(nil)
 var _ sort.Interface = (*sortByPCB)(nil)
@@ -63,6 +65,21 @@ func (s sortByPCB) Less(i, j int) bool {
 	return s.orders[i].PromoAmt > s.orders[j].PromoAmt
 }
 
+type sortByCPB struct {
+	baseSorter
+}
+
+func (s sortByCPB) Less(i, j int) bool {
+	if s.orders[i].CouponAmt == s.orders[j].CouponAmt {
+		if s.orders[i].PromoAmt == s.orders[j].PromoAmt {
+			return s.orders[i].Balance > s.orders[j].Balance
+		}
+
+		return s.orders[i].PromoAmt > s.orders[j].PromoAmt
+	}
+	return s.orders[i].CouponAmt > s.orders[j].CouponAmt
+}
+
 func SortByBCP(orders []*Order) {
     sorter := sortByBCP{baseSorter{orders}}
     sort.Sort(sorter)
@@ -75,5 +92,10 @@ func SortByBPC(orders []*Order) {
 
 func SortByPCB(orders []*Order) {
     sorter := sortByPCB{baseSorter{orders}}
+    sort.Sort(sorter)
+}
+
+func SortByCPB(orders []*Order) {
+    sorter := sortByCPB{baseSorter{orders}}
     sort.Sort(sorter)
 }

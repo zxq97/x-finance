@@ -6,8 +6,12 @@ import (
 
 type OrderRepo interface {
 	GetOneByID(ctx context.Context, bizType int8, id, subID int64, opts ...Option) (*Order, error)
-	GetAllByID(ctx context.Context, bizType int8, id int64, orderType int8, opts ...Option) ([]*Order, error)
+	GetAllByID(ctx context.Context, bizType int8, id int64, opts ...Option) ([]*Order, error)
 	MultiGetBySubIDs(ctx context.Context, bizType int8, id int64, ids []int64, opts ...Option) ([]*Order, error)
+	GetDetailsBySubID(ctx context.Context, subID int64) ([]*SettleDetail, error)
+	GetDetailsBySubIDAndType(ctx context.Context, subID int64, targetType int8) ([]*SettleDetail, error)
+	MultiGetDetailsBySubIDs(ctx context.Context, subIDs []int64) (map[int64][]*SettleDetail, error)
+	MultiGetDetailsBySubIDsAndType(ctx context.Context, subIDs []int64, targetType int8) (map[int64]*SettleDetail, error)
 	Create(ctx context.Context, param *OrderCreateParam) error
 	UpdatePayID(ctx context.Context, bizType int8, id, subID int64, payID string) error
 

@@ -13,7 +13,7 @@ type Strategy interface {
 type RefundBiz interface {
 	CheckIdempotent(ctx context.Context, param *CheckIdempotentParam) error
 	GetNeedRefundOrders(ctx context.Context, param *GetRefundOrderParam) ([]*Order, error)
-	CheckRefundAmt(ctx context.Context, param *CheckRefundAmtParam) (*RefundDetail, error)
+	CheckRefundAmt(ctx context.Context, param *CheckRefundAmtParam) (RefundSortFn, *RefundDetail, error)
 	InsertRefundRecords(ctx context.Context, records []*RefundRecord) error
 	RealRefund(ctx context.Context, record *RefundRecord) error
 }
@@ -26,6 +26,10 @@ type example struct {
 
 func NewStrategy(biz RefundBiz) Strategy {
 	return &example{biz: biz}
+}
+
+func f() func([]*Order) {
+	return SortByBCP
 }
 
 func (e *example) Refund(ctx context.Context, param *RefundParam) error {
@@ -47,19 +51,22 @@ func (e *example) Refund(ctx context.Context, param *RefundParam) error {
 	if err != nil {
 		return err
 	} else if len(orders) == 0 {
-		return err // error dingyi
+		return ErrRefundOrderNotFound
 	}
 
-	refundDetail, err := e.biz.CheckRefundAmt(ctx, &CheckRefundAmtParam{
+	sortFn, refundDetail, err := e.biz.CheckRefundAmt(ctx, &CheckRefundAmtParam{
 		Orders:       orders,
 		RefundAmt:    param.RefundAmt,
 		RefundReal:   param.RefundReal,
 		RefundCoupon: param.RefundCoupon,
 		RefundPromo:  param.RefundPromo,
+		RefundType:   param.RefundType,
 	})
 	if err != nil {
 		return err
 	}
+
+	sortFn(orders)
 
 	refundRecords := make([]*RefundRecord, 0, len(orders))
 	for _, v := range orders {

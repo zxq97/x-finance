@@ -8,6 +8,7 @@ var (
 	ErrOrderIDIsInvalid      = errors.New("order: id is invalid")
 	ErrOrderIDIsDuplicate    = errors.New("order: id is duplicate")
 	ErrSettleTypeIsInvalid   = errors.New("settle: type is invalid")
+	ErrSettleDetailNotFound  = errors.New("settle: detail not found")
 	ErrMerchantCodeIsInvalid = errors.New("merchant: code is invalid")
 	ErrRefundAmtInvalid      = errors.New("refund: amount is invalid")
 	ErrRefundTypeNotFound    = errors.New("refund: type not found")

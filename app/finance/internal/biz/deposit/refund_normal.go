@@ -58,9 +58,9 @@ func (r *refundNormal) GetNeedRefundOrders(ctx context.Context, param *refund.Ge
 	return res, nil
 }
 
-func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (*refund.RefundDetail, error) {
+func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRefundAmtParam) (refund.RefundSortFn, *refund.RefundDetail, error) {
 	if param.RefundAmt != param.RefundReal || param.RefundCoupon != 0 || param.RefundPromo != 0 {
-		return nil, biz.ErrRefundAmtInvalid
+		return nil, nil, biz.ErrRefundAmtInvalid
 	}
 
 	var amt, balance int64
@@ -71,10 +71,10 @@ func (r *refundNormal) CheckRefundAmt(ctx context.Context, param *refund.CheckRe
 	}
 
 	if amt < param.RefundAmt || balance < param.RefundReal {
-		return nil, biz.ErrRefundAmtInvalid
+		return nil, nil, biz.ErrRefundAmtInvalid
 	}
 
-	return &refund.RefundDetail{RealAmt: param.RefundAmt}, nil
+	return refund.SortByBPC, &refund.RefundDetail{RealAmt: param.RefundAmt}, nil
 }
 
 func (r *refundNormal) InsertRefundRecords(ctx context.Context, records []*refund.RefundRecord) error {
